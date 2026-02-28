@@ -1,0 +1,74 @@
+{
+    "meta": {
+        "run_date": "2026-01-17",
+        "timestamp": "2026-01-18T17:41:34.581532",
+        "version": "1.0"
+    },
+    "inputs": {
+        "tickers_count": 23,
+        "tickers": [
+            "MSFT",
+            "PLTR",
+            "MCD",
+            "TSM",
+            "META",
+            "URA",
+            "ABT",
+            "ORCL",
+            "SPY",
+            "XLF",
+            "EEM",
+            "QQQ",
+            "IWM",
+            "PFE",
+            "NVDA",
+            "AMD",
+            "GLD",
+            "USDCLP=X",
+            "PANW",
+            "TSLA",
+            "XLK",
+            "QUBT",
+            "SMCI"
+        ],
+        "data_cache_path": "data_cache"
+    },
+    "parameters": {
+        "zscore_window": 60,
+        "volatility_window_short": 30,
+        "volatility_window_long": 90,
+        "bollinger_window": 35,
+        "bollinger_std": 2.0,
+        "lookback_days": 200,
+        "hurst": {
+            "window": 126,
+            "min_scale": 10,
+            "max_scale": null,
+            "high_threshold": 0.55,
+            "low_threshold": 0.45
+        },
+        "ewma_vol": {
+            "span": 20
+        },
+        "market_mode": {
+            "window": 60,
+            "min_assets": 3
+        },
+        "risk_off": {
+            "lookback": 252,
+            "percentile_threshold": 0.9
+        },
+        "signal_policy": {
+            "risk_off_action": "degrade"
+        }
+    },
+    "quality": {
+        "errors_count": 0,
+        "errors": []
+    },
+    "details": {
+        "market_mode": {
+            "error": "Target date 2026-01-17 not in returns index."
+        }
+    }
+}

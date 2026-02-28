@@ -1,0 +1,57 @@
+universes:
+  # Proxies for Systemic Risk (ETFs, Indices)
+  system:
+    - SPY
+    - QQQ
+    - IWM
+    - GLD
+    - EEM
+    - XLF
+    - XLK
+    
+  # Assets to Trade / Signal
+  trade:
+    - USDCLP=X
+    - SMCI
+    - URA
+    - MSFT
+    - NVDA
+    - QUBT
+    - PANW
+    - PFE
+    - PLTR
+    - ORCL
+    - ABT
+    - AMD
+    - TSM
+    - TSLA
+    - MCD
+    - META
+
+parameters:
+  zscore_window: 60
+  volatility_window_short: 30
+  volatility_window_long: 90
+  bollinger_window: 35
+  bollinger_std: 2.0
+  lookback_days: 200 # How much data to load/keep in cache view for calculations
+  hurst:
+    window: 126 # ~6 months
+    min_scale: 10
+    max_scale: null
+    high_threshold: 0.55
+    low_threshold: 0.45
+  ewma_vol:
+    span: 20
+  market_mode:
+    window: 60 # 1 month correlation
+    min_assets: 3
+  risk_off:
+    lookback: 252 # 1 year percentile
+    percentile_threshold: 0.90
+  signal_policy:
+    risk_off_action: "degrade" # or block
+
+paths:
+  data_cache: "data_cache"
+  reports: "reports"
