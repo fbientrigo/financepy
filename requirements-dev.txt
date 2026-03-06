@@ -1,0 +1,13 @@
+# Development dependencies for FinancePy
+
+# Testing
+pytest>=7.4
+pytest-cov>=4.1
+
+# Code quality
+black>=23.0
+ruff>=0.1
+mypy>=1.0
+
+# All production dependencies (uncomment to install together)
+# -r requirements.txt

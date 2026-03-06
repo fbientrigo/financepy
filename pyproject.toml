@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financepy"
+version = "0.1.0"
+description = "Advanced financial analytics pipeline with regime classification, risk monitoring, and trading signals"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "FinancePy Contributors", email = "dev@financepy.local"}
+]
+keywords = [
+    "finance", "trading", "analytics", "indicators", "signals", "etf-monitor",
+    "market-analysis", "risk-management", "regime-detection", "phase-space"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+dependencies = [
+    "pandas>=2.2.0,<3.0",          # Data manipulation, DataFrame operations
+    "numpy>=2.0,<3.0",             # Numerical computing, eigenvalues
+    "yfinance>=0.2.32,<1.0",       # Yahoo Finance data download
+    "pyyaml>=6.0,<7.0",            # YAML config parsing
+    "plotly>=5.17.0,<6.0",         # Interactive visualizations (Plotly)
+    "streamlit>=1.28.0,<2.0",      # Web dashboard framework
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0,<8.0",          # Testing framework
+    "pytest-cov>=4.1.0,<5.0",      # Coverage reports
+    "black>=23.0.0,<24.0",         # Code formatter
+    "ruff>=0.1.0,<1.0",            # Linter
+    "mypy>=1.0.0,<2.0",            # Type checking
+]
+
+test = [
+    "pytest>=7.4.0,<8.0",
+    "pytest-cov>=4.1.0,<5.0",
+]
+
+dash = [
+    "streamlit>=1.28.0,<2.0",
+    "plotly>=5.17.0,<6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/user/financepy"
+Documentation = "https://github.com/user/financepy/blob/main/README.md"
+Repository = "https://github.com/user/financepy.git"
+Issues = "https://github.com/user/financepy/issues"
+
+[tool.setuptools]
+packages = ["src", "app", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "F", "W"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
