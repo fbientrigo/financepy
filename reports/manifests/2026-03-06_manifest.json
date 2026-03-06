@@ -1,35 +1,48 @@
 {
     "meta": {
-        "run_date": "2026-01-08",
-        "timestamp": "2026-01-09T11:58:30.861988",
+        "run_date": "2026-03-06",
+        "timestamp": "2026-03-06T16:55:18.514205",
         "version": "1.0"
     },
     "inputs": {
-        "tickers_count": 23,
+        "tickers_count": 36,
         "tickers": [
-            "NVDA",
-            "SPY",
-            "MCD",
-            "TSLA",
-            "IWM",
-            "URA",
             "USDCLP=X",
+            "PTC",
+            "MSFT",
+            "MCD",
+            "AMD",
+            "ADBE",
+            "ABT",
+            "NVDA",
+            "TSLA",
+            "EEM",
+            "SLB",
+            "QQQ",
+            "META",
+            "UBER",
+            "XLF",
+            "QUBT",
+            "SPY",
+            "AMZN",
+            "HDV",
+            "INTC",
+            "URA",
+            "QBTS",
+            "PANW",
+            "PLTR",
+            "KO",
+            "TSM",
+            "SMCI",
+            "XLK",
+            "PFE",
+            "IWM",
+            "ZM",
+            "SLV",
+            "GOOG",
             "GLD",
             "ORCL",
-            "QUBT",
-            "PLTR",
-            "ABT",
-            "PFE",
-            "MSFT",
-            "EEM",
-            "META",
-            "QQQ",
-            "XLF",
-            "SMCI",
-            "PANW",
-            "XLK",
-            "TSM",
-            "AMD"
+            "AVGO"
         ],
         "data_cache_path": "data_cache"
     },
@@ -70,15 +83,15 @@
         "market_mode": {
             "meta": {
                 "window_days": 60,
-                "window_start": "2025-10-14",
-                "window_end": "2026-01-08",
+                "window_start": "2025-12-09",
+                "window_end": "2026-03-06",
                 "n_obs_window": 60,
                 "n_assets_effective": 7
             },
             "metrics": {
-                "lambda1": 4.416508170483993,
-                "lambda1_norm": 0.6309297386405703,
-                "explained_ratio": 0.6309297386405703
+                "lambda1": 4.44095405520206,
+                "lambda1_norm": 0.6344220078860087,
+                "explained_ratio": 0.6344220078860088
             },
             "assets": [
                 {
@@ -134,65 +147,65 @@
             "eigenvalues": [
                 {
                     "rank": 1,
-                    "value": 4.416508170483993,
-                    "explained": 0.6309297386405703
+                    "value": 4.44095405520206,
+                    "explained": 0.6344220078860088
                 },
                 {
                     "rank": 2,
-                    "value": 1.1555453951713905,
-                    "explained": 0.16507791359591292
+                    "value": 1.163728518861343,
+                    "explained": 0.1662469312659062
                 },
                 {
                     "rank": 3,
-                    "value": 0.918001393083753,
-                    "explained": 0.13114305615482186
+                    "value": 0.7282679868017412,
+                    "explained": 0.1040382838288202
                 },
                 {
                     "rank": 4,
-                    "value": 0.256301244311629,
-                    "explained": 0.03661446347308985
+                    "value": 0.34768127009212835,
+                    "explained": 0.04966875287030406
                 },
                 {
                     "rank": 5,
-                    "value": 0.18366957536631656,
-                    "explained": 0.02623851076661665
+                    "value": 0.23565931700273274,
+                    "explained": 0.03366561671467611
                 }
             ],
             "eigenvector_1": [
                 {
                     "ticker": "SPY",
-                    "weight": -0.46219022257505676,
-                    "abs_weight": 0.46219022257505676
+                    "weight": -0.4556658685568454,
+                    "abs_weight": 0.4556658685568454
                 },
                 {
                     "ticker": "QQQ",
-                    "weight": -0.44093826656816304,
-                    "abs_weight": 0.44093826656816304
+                    "weight": -0.4396278553502211,
+                    "abs_weight": 0.4396278553502211
                 },
                 {
                     "ticker": "XLK",
-                    "weight": -0.4218985327928183,
-                    "abs_weight": 0.4218985327928183
+                    "weight": -0.43136254413281216,
+                    "abs_weight": 0.43136254413281216
                 },
                 {
                     "ticker": "IWM",
-                    "weight": -0.4020958895573825,
-                    "abs_weight": 0.4020958895573825
+                    "weight": -0.4083541301054403,
+                    "abs_weight": 0.4083541301054403
                 },
                 {
                     "ticker": "EEM",
-                    "weight": -0.3910698190110076,
-                    "abs_weight": 0.3910698190110076
+                    "weight": -0.36370578469116016,
+                    "abs_weight": 0.36370578469116016
                 },
                 {
                     "ticker": "XLF",
-                    "weight": -0.27049746325524926,
-                    "abs_weight": 0.27049746325524926
+                    "weight": -0.29987903753298156,
+                    "abs_weight": 0.29987903753298156
                 },
                 {
                     "ticker": "GLD",
-                    "weight": -0.16177047286628454,
-                    "abs_weight": 0.16177047286628454
+                    "weight": -0.1551125075810371,
+                    "abs_weight": 0.1551125075810371
                 }
             ]
         }
