@@ -55,3 +55,4 @@ parameters:
 paths:
   data_cache: "data_cache"
   reports: "reports"
+  portfolio_db: "data_cache/portfolio.db"
