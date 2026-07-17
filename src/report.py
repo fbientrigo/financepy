@@ -1,66 +1,21 @@
 import pandas as pd
 import datetime
-from typing import List
+from typing import List, Optional
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 class Reporter:
     def __init__(self, output_dir: str):
         self.output_dir = output_dir
 
-    def generate_report(self, date_str: str, 
-                        features: pd.DataFrame, 
-                        signals: pd.DataFrame, 
-                        errors: List[str] = None):
-        
-        # Features and Signals are "long" dataframes with MultiIndex or just combined?
-        # To make a summary table, we usually want the LAST row per ticker.
-        # But wait, the pipeline likely processes HISTORY.
-        # We need to slice for the specific 'date_str'.
-        
-        target_date = pd.to_datetime(date_str)
-        
-        # Helper to get row for date
-        # Assuming features has index level 0 = Date, or just Date index and we filter
-        # It's better if we passed a dictionary of {ticker: last_row_series} or a DF with Ticker column?
-        # The store returns DF with index=Date.
-        # When we process all, we probably have a dictionary of DFs or one big concated DF with 'Ticker' column?
-        # Let's assume the 'run_daily' script assembles a snapshot DataFrame for the day.
-        
-        # Let's write the logic assuming we receive a "Summary DataFrame" for the day
-        # columns: Ticker, Close, ret_1d, zscore, signal, state, reasons
-        
-        report_lines = []
-        report_lines.append(f"# Daily Market Summary: {date_str}")
-        report_lines.append(f"Generated at: {datetime.datetime.now()}")
-        report_lines.append("")
-        
-        if errors:
-            report_lines.append("## ⚠️ Warnings")
-            for e in errors:
-                report_lines.append(f"- {e}")
-            report_lines.append("")
-            
-        report_lines.append("## Market Snapshot")
-        
-        # Table Header
-        headers = ["Ticker", "Close", "1D Return", "Vol 20d", "Z-Score", "Signal", "State", "Confidence"]
-        report_lines.append("| " + " | ".join(headers) + " |")
-        report_lines.append("| " + " | ".join(["---"] * len(headers)) + " |")
-        
-        # We expect 'features' and 'signals' to be DFs containing data for ALL processed tickers for THAT DATE.
-        # Or we act on a merged DF.
-        
-        # Let's assume the caller passes a combined DF ready for display called 'snapshot'
-        # But here I defined signature with features/signals.
-        # Let's do the merge here.
-        
-        # We need to iterate over tickers present in the features index (if MultiIndex) 
-        # OR if features is just a list of rows. 
-        # Simpler: The caller 'run_daily.py' will loop over tickers, get the row for the date, 
-        # collect them into a list, and pass that to reporter. 
-        # Let's change signature to accept a list of dicts or a summary DF.
-        pass
 
-    def generate_from_snapshot(self, snapshot_df: pd.DataFrame, errors: List[str] = None) -> str:
+    def generate_from_snapshot(
+        self,
+        snapshot_df: pd.DataFrame,
+        errors: List[str] = None,
+        holdings_df: Optional[pd.DataFrame] = None,
+    ) -> str:
         """
         snapshot_df columns expected: 
         Ticker, Close, ret_1d, vol_20d, zscore, signal, state, confidence, reasons
@@ -89,22 +44,33 @@ class Reporter:
         market_regime_counts = {}
         
         for _, row in snapshot_df.iterrows():
-            ticker = row['Ticker']
-            close = f"{row['Close']:.2f}"
+            ticker = row.get('Ticker', 'UNKNOWN')
+            
+            try:
+                close_val = float(row.get('Close'))
+                close = f"{close_val:.2f}"
+            except (TypeError, ValueError):
+                close = "N/A"
             
             # Colorize returns
-            ret = row['ret_1d']
+            ret = row.get('ret_1d')
             try:
                 ret_val = float(ret)
                 ret_str = f"{ret_val*100:+.2f}%"
-            except:
+            except (TypeError, ValueError):
                 ret_str = "N/A"
                 
-            vol = row.get('vol_ewma', row.get('vol_20d', 0))
-            vol_str = f"{vol*100:.0f}%" # Compact
+            vol = row.get('vol_ewma', row.get('vol_20d'))
+            try:
+                vol_str = f"{float(vol)*100:.0f}%" # Compact
+            except (TypeError, ValueError):
+                vol_str = "N/A"
             
-            hurst = row.get('hurst_dfa', 0)
-            hurst_str = f"{hurst:.2f}"
+            hurst = row.get('hurst_dfa')
+            try:
+                hurst_str = f"{float(hurst):.2f}"
+            except (TypeError, ValueError):
+                hurst_str = "N/A"
             
             regime = row.get('regime_label', 'N/A')
             risk_off = "YES" if row.get('risk_off_flag', False) else "-"
@@ -116,8 +82,11 @@ class Reporter:
             
             market_regime_counts[regime] = market_regime_counts.get(regime, 0) + 1
 
-            z = row.get('zscore', 0)
-            z_str = f"{z:.2f}"
+            z = row.get('zscore')
+            try:
+                z_str = f"{float(z):.2f}"
+            except (TypeError, ValueError):
+                z_str = "N/A"
             
             sig = row.get('signal', 'NONE')
             
@@ -166,13 +135,14 @@ class Reporter:
         for _, row in snapshot_df.iterrows():
             reasons = row.get('reasons', [])
             recent = row.get('recent_signals', [])
+            sig_val = row.get('signal', 'NONE')
             
             # Show if current signal OR recent points OR reasons exist
-            if reasons or row['signal'] != 'NONE' or recent:
-                report_lines.append(f"### {row['Ticker']}")
+            if reasons or sig_val != 'NONE' or recent:
+                report_lines.append(f"### {row.get('Ticker', 'UNKNOWN')}")
                 
-                if row['signal'] != 'NONE':
-                    report_lines.append(f"- **Current Signal**: {row['signal']} ({row.get('confidence',0):.2f})")
+                if sig_val != 'NONE':
+                    report_lines.append(f"- **Current Signal**: {sig_val} ({row.get('confidence', 0.0):.2f})")
                 
                 if reasons:
                     report_lines.append(f"- **Reasons**:")
@@ -186,11 +156,69 @@ class Reporter:
                 
                 report_lines.append("")
                 
+        # --- PORTFOLIO SECTION (only when holdings are provided) ---
+        if holdings_df is not None and not holdings_df.empty:
+            report_lines.append(self._render_portfolio_section(snapshot_df, holdings_df))
+
         return "\n".join(report_lines)
-    
+
+    def _render_portfolio_section(
+        self,
+        snapshot_df: pd.DataFrame,
+        holdings_df: pd.DataFrame,
+    ) -> str:
+        """
+        Render the '## 💼 Mi Portafolio' Markdown section.
+
+        Cross-joins holdings_df (ticker, usd_amount) with snapshot_df
+        (Ticker, Close, signal, confidence) and emits one row per held asset
+        with an operational alert when a signal is active.
+        """
+        lines = ["", "## 💼 Mi Portafolio", ""]
+
+        total_usd = holdings_df["usd_amount"].sum()
+        lines.append(f"**Valor Total Estimado:** ${total_usd:,.2f} USD")
+        lines.append("")
+
+        # Left-join: start from MY holdings, pull in indicators when available
+        if not snapshot_df.empty and "Ticker" in snapshot_df.columns:
+            needed_cols = [c for c in ["Ticker", "Close", "signal", "confidence"] if c in snapshot_df.columns]
+            merged = holdings_df.merge(
+                snapshot_df[needed_cols],
+                left_on="ticker",
+                right_on="Ticker",
+                how="left",
+            )
+        else:
+            merged = holdings_df.copy()
+            merged["signal"] = "NONE"
+            merged["confidence"] = 0.0
+
+        lines.append("| Activo | Monto (USD) | Señal | Alerta Operativa |")
+        lines.append("|---|---|---|---|")
+
+        for _, row in merged.iterrows():
+            sig = row.get("signal", "NONE") or "NONE"
+            amt = row["usd_amount"]
+
+            if sig == "BUY_ALERT":
+                sig_icon = "🟢"
+                alert = f"🟢 BUY_ALERT (Tienes ${amt:,.2f} USD)"
+            elif sig == "SELL_ALERT":
+                sig_icon = "🔴"
+                alert = f"🔴 SELL_ALERT (Tienes ${amt:,.2f} USD)"
+            else:
+                sig_icon = "⚪"
+                alert = "—"
+
+            lines.append(f"| {row['ticker']} | ${amt:,.2f} | {sig_icon} | {alert} |")
+
+        lines.append("")
+        return "\n".join(lines)
+
     def save(self, content: str, date_str: str) -> str:
         filename = f"{self.output_dir}/{date_str}_summary.md"
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"Report saved to {filename}")
+        logger.info(f"Report saved to {filename}")
         return filename
