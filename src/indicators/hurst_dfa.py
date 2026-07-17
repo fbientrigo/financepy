@@ -21,6 +21,9 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Union, List, Tuple
 import warnings
+import logging
+
+logger = logging.getLogger(__name__)
 
 def compute_hurst_dfa(
     series: pd.Series, 
@@ -269,14 +272,14 @@ if __name__ == "__main__":
     ts_noise = pd.Series(steps)
     
     # 2. Test DFA on Noise (Should be H ~ 0.5)
-    print(f"Testing on White Noise (Target H=0.5)...")
+    logger.info("Testing on White Noise (Target H=0.5)...")
     h_noise = compute_hurst_dfa(ts_noise, min_scale=10)
-    print(f"Estimated H (Noise): {h_noise:.4f}")
+    logger.info(f"Estimated H (Noise): {h_noise:.4f}")
     
     if not (0.4 < h_noise < 0.6):
         warnings.warn(f"WARNING: H estimation for noise is far from 0.5: {h_noise}")
     else:
-        print("PASS: Noise estimation within bounds.")
+        logger.info("PASS: Noise estimation within bounds.")
 
     # 3. Test on Random Walk (Price)
     # Caution: DFA requires STATIONARY input. 
@@ -289,9 +292,9 @@ if __name__ == "__main__":
     # Or just rely on the white noise test.
     
     # 4. Test Rolling
-    print("\nTesting Rolling DFA...")
+    logger.info("Testing Rolling DFA...")
     rolling_h = rolling_hurst_dfa(ts_noise, window=500, min_scale=10)
-    print(f"Rolling H Mean: {rolling_h.mean():.4f}")
-    print(f"Rolling H Std:  {rolling_h.std():.4f}")
+    logger.info(f"Rolling H Mean: {rolling_h.mean():.4f}")
+    logger.info(f"Rolling H Std:  {rolling_h.std():.4f}")
     
-    print("\nVerification Complete.")
+    logger.info("Verification Complete.")

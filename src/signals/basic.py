@@ -77,8 +77,6 @@ class BasicSignals:
         reasons_list = []
         # Safely access zscore series
         z_series = df['zscore']
-        # Safely access zscore series
-        z_series = df['zscore']
         
         # Need to iterate by index integer to access filtering columns row by row efficiently
         # Or use iteritem on df... slow but safe.
@@ -110,9 +108,4 @@ class BasicSignals:
 
         return out
 
-def transform_series(s):
-    # If s is a DataFrame (duplicate cols), take the first one?
-    if isinstance(s, pd.DataFrame):
-        return s.iloc[:, 0]
-    return s
 

@@ -3,6 +3,9 @@ import pandas as pd
 import datetime
 from typing import List, Dict
 from .store import DataStore
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 class DataLoader:
     def __init__(self, store: DataStore):
@@ -36,7 +39,7 @@ class DataLoader:
         
         # Check if we already have sufficient data
         if last_date and last_date >= target_date:
-            print(f"[{ticker}] Cache up to {last_date} covers target {target_date}. Skipping fetch.")
+            logger.info(f"[{ticker}] Cache up to {last_date} covers target {target_date}. Skipping fetch.")
             return
 
         # Determine start date
@@ -70,11 +73,11 @@ class DataLoader:
         if fetch_end <= fetch_start:
              return
 
-        print(f"[{ticker}] Fetching from {fetch_start} to {fetch_end} (Target: {target_date})...")
+        logger.info(f"[{ticker}] Fetching from {fetch_start} to {fetch_end} (Target: {target_date})...")
         df = yf.download(ticker, start=str(fetch_start), end=str(fetch_end), auto_adjust=True, progress=False)
         
         if df.empty:
-            print(f"Warning: No data found for {ticker} in range {start_date} - {end_date}")
+            logger.warning(f"No data found for {ticker} in range {fetch_start} - {fetch_end}")
             return
 
         # Flatten columns if MultiIndex (common in new yfinance)
@@ -88,8 +91,15 @@ class DataLoader:
         # Validation: We strictly need 'Close'
 
         if 'Close' not in df.columns:
-            # Sometimes it is capital 'Close' or 'Adj Close'
-            pass
+            if 'Adj Close' in df.columns:
+                df.rename(columns={'Adj Close': 'Close'}, inplace=True)
+            else:
+                # Case-insensitive search for any column containing 'close'
+                close_cols = [c for c in df.columns if 'close' in c.lower()]
+                if close_cols:
+                    df.rename(columns={close_cols[0]: 'Close'}, inplace=True)
+                else:
+                    raise ValueError(f"[{ticker}] Missing Close column. Columns: {list(df.columns)}")
             
         # Standardize columns to standard lower case or keep as is? 
         # Requirement says: A) prices: ... values=AdjClose.
@@ -122,6 +132,7 @@ class DataLoader:
 
         prices = pd.DataFrame(series_list)
         prices = prices.sort_index()
+        prices = prices.ffill()
         
         if start_date:
              prices = prices[prices.index.date >= start_date]

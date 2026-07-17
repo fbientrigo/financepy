@@ -2,6 +2,9 @@ import pandas as pd
 import os
 from pathlib import Path
 from typing import Optional
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 class DataStore:
     def __init__(self, cache_dir: str):
@@ -24,7 +27,7 @@ class DataStore:
                 df.index = pd.to_datetime(df.index)
             return df.sort_index()
         except Exception as e:
-            print(f"Warning: Failed to load cache for {ticker}: {e}")
+            logger.warning(f"Failed to load cache for {ticker}: {e}")
             return None
 
     def save(self, ticker: str, df: pd.DataFrame, merge: bool = True):
@@ -52,7 +55,7 @@ class DataStore:
         try:
             df.to_parquet(path)
         except Exception as e:
-            print(f"Error saving cache for {ticker}: {e}")
+            logger.error(f"Error saving cache for {ticker}: {e}")
 
     def get_last_date(self, ticker: str):
         df = self.load(ticker)
