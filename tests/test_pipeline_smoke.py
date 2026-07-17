@@ -52,9 +52,15 @@ paths:
         if os.path.exists("test_config.yaml"):
             os.remove("test_config.yaml")
 
+    @patch('src.portfolio_manager.get_active_holdings')
+    @patch('src.portfolio_manager.get_portfolio_tickers')
     @patch('src.data.DataLoader.fetch_and_store')
     @patch('src.store.DataStore.load')
-    def test_run_daily_smoke(self, mock_load, mock_fetch):
+    def test_run_daily_smoke(self, mock_load, mock_fetch, mock_ptickers, mock_pholdings):
+        # Mock portfolio DB functions (no real DB needed)
+        mock_ptickers.return_value = []
+        mock_pholdings.return_value = pd.DataFrame(columns=["ticker", "usd_amount", "last_updated"])
+
         # Mock fetch to return success
         mock_fetch.return_value = (2, [])
         
