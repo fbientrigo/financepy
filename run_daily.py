@@ -16,7 +16,11 @@ from src.analytics.risk_off import compute_risk_off
 from src.signals.registry import SignalRegistry
 from src.signals.basic import BasicSignals
 from src.report import Reporter
+from src.portfolio_manager import get_portfolio_tickers, get_active_holdings
+from src.logger_config import setup_logging, get_logger
 import numpy as np
+
+logger = get_logger("financepy.pipeline")
 
 def load_config(path: str):
     with open(path, 'r') as f:
@@ -27,7 +31,7 @@ def run_pipeline(target_date: datetime.date, config_path: str) -> str:
     Executes the pipeline for the given date and config.
     Returns the path to the generated report or raises error.
     """
-    print(f"Running pipeline for {target_date}...")
+    logger.info(f"Running pipeline for {target_date}...")
 
     # Load Config
     config = load_config(config_path)
@@ -42,24 +46,31 @@ def run_pipeline(target_date: datetime.date, config_path: str) -> str:
         trade_tickers = config['tickers']
         system_tickers = config['tickers']
         all_tickers = trade_tickers
-        
+
     params = config['parameters']
+
+    # Dynamic Ingestion: add portfolio tickers so they are always downloaded
+    portfolio_db = config.get('paths', {}).get('portfolio_db', 'data_cache/portfolio.db')
+    portfolio_tickers = get_portfolio_tickers(portfolio_db)
+    if portfolio_tickers:
+        logger.info(f"Portfolio tickers detected: {portfolio_tickers}")
+        all_tickers = list(set(all_tickers + portfolio_tickers))
 
     # Initialize Components
     store = DataStore(config['paths']['data_cache'])
     loader = DataLoader(store)
     
     # 1. Ingest Data (All required tickers)
-    print(f"Ingesting data (Target: {target_date})...")
+    logger.info(f"Ingesting data (Target: {target_date})...")
     # We ingest all distinct tickers needed
     count, errors = loader.fetch_and_store(all_tickers, target_date=target_date)
     for err in errors:
-        print(f"Ingestion err: {err}")
+        logger.error(f"Ingestion error: {err}")
     
     # 4. Process Tickers
     
     # 4a. Global Market Mode Calculation (System Universe)
-    print("Loading system tickers for Global Analysis...")
+    logger.info("Loading system tickers for Global Analysis...")
     system_data = {}
     valid_returns = pd.DataFrame()
     
@@ -73,7 +84,7 @@ def run_pipeline(target_date: datetime.date, config_path: str) -> str:
 
     # Calculate Market Mode (Lambda1) - Time Series
     mm_cfg = params.get('market_mode', {})
-    print("Computing Market Mode (Lambda1)...")
+    logger.info("Computing Market Mode (Lambda1)...")
     from src.indicators.market_mode import compute_market_mode_details
     
     lambda1 = compute_lambda1_norm(
@@ -170,13 +181,13 @@ def run_pipeline(target_date: datetime.date, config_path: str) -> str:
                 snapshot_rows.append(row_dict)
             else:
                 last_dt = full_df.index[-1]
-                print(f"Warning: No data for {ticker} on {target_date}. Last data: {last_dt.date()}")
+                logger.warning(f"No data for {ticker} on {target_date}. Last data: {last_dt.date()}")
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            logger.error(f"Error processing {ticker}: {e}")
 
     # 5. Report
     if not snapshot_rows:
-        print("No data found for target date. Report will be empty/skipped.")
+        logger.warning("No data found for target date. Report will be empty/skipped.")
         
     snapshot_df = pd.DataFrame(snapshot_rows)
     if not snapshot_df.empty:
@@ -203,8 +214,15 @@ def run_pipeline(target_date: datetime.date, config_path: str) -> str:
     rel_path = f"manifests/{saved_manifest_path.name}"
     transparency_md = MarkdownRenderer.render_transparency_section(manifest, relative_manifest_path=rel_path)
 
+    # Load live portfolio holdings (empty DataFrame if DB not present)
+    holdings_df = get_active_holdings(portfolio_db)
+
     reporter = Reporter(config['paths']['reports'])
-    report_content = reporter.generate_from_snapshot(snapshot_df, errors=errors)
+    report_content = reporter.generate_from_snapshot(
+        snapshot_df,
+        errors=errors,
+        holdings_df=holdings_df if not holdings_df.empty else None,
+    )
     
     # Append Transparency Section
     report_content += "\n\n" + transparency_md
@@ -216,7 +234,12 @@ def main():
     parser = argparse.ArgumentParser(description="Run Daily Market Summary Pipeline")
     parser.add_argument("--date", type=str, help="Target date YYYY-MM-DD", default=None)
     parser.add_argument("--config", type=str, default="configs/config.yaml")
+    parser.add_argument("--log-level", type=str, default="INFO", 
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
     args = parser.parse_args()
+
+    # Setup logging
+    setup_logging(log_level=args.log_level)
 
     if args.date:
         target_date = datetime.datetime.strptime(args.date, "%Y-%m-%d").date()
