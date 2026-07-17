@@ -1,0 +1,19 @@
+# Minimal production environment for FinancePy
+# Install with: conda env create -f environment-minimal.yml
+
+name: financepy
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pandas>=2.2.0
+  - numpy>=2.0
+  - scipy>=1.11
+  - pyyaml>=6.0
+  - plotly>=5.17
+  - streamlit>=1.28
+  - pip
+  - pip:
+    - yfinance>=0.2.32
+

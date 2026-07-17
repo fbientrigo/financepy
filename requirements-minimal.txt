@@ -1,0 +1,17 @@
+# Minimal production dependencies for FinancePy
+# Install with: pip install -r requirements-minimal.txt
+
+# Data science & numerical computing
+pandas>=2.2.0,<3.0
+numpy>=2.0,<3.0
+scipy>=1.11,<2.0
+
+# Financial data
+yfinance>=0.2.32,<1.0
+
+# Configuration
+pyyaml>=6.0,<7.0
+
+# Visualization & Dashboard
+plotly>=5.17.0,<6.0
+streamlit>=1.28.0,<2.0
